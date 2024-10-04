@@ -13,6 +13,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\IsTrue;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Vich\UploaderBundle\Form\Type\VichFileType;
+
 
 class RegistrationFormType extends AbstractType
 {
@@ -22,6 +25,13 @@ class RegistrationFormType extends AbstractType
             ->add('email', EmailType::class)
             ->add('firstName', TextType::class)
             ->add('lastName', TextType::class)
+            ->add('cvFile', VichFileType::class, [
+                'required' => false,
+                'allow_delete' => true,
+                'delete_label' => 'Supprimer le CV',
+                'download_uri' => true,
+                'label' => 'CV (PDF file)',
+            ])
             ->add('plainPassword', PasswordType::class, [
                 'mapped' => false,
                 'attr' => ['autocomplete' => 'new-password'],

@@ -57,9 +57,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?File $profilePictureFile = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $cv = null;
+    private ?string $cvFilename = null;
 
-    #[Vich\UploadableField(mapping: 'cv_files', fileNameProperty: 'cv')]
+    #[Vich\UploadableField(mapping: 'cv_files', fileNameProperty: 'cvFilename')]
     private ?File $cvFile = null;
 
     #[ORM\Column(length: 100, nullable: true)]
@@ -91,7 +91,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): static
     {
         $this->email = $email;
-
         return $this;
     }
 
@@ -103,7 +102,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setFirstName(string $firstName): static
     {
         $this->firstName = $firstName;
-
         return $this;
     }
 
@@ -115,7 +113,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastName(string $lastName): static
     {
         $this->lastName = $lastName;
-
         return $this;
     }
 
@@ -127,7 +124,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 
@@ -139,7 +135,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
-
         return $this;
     }
 
@@ -151,42 +146,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setImage(?string $image): static
     {
         $this->image = $image;
-
         return $this;
     }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
     public function getUserIdentifier(): string
     {
         return (string) $this->email;
     }
 
-    /**
-     * @see UserInterface
-     */
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
-
         return array_unique($roles);
     }
 
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
-
         return $this;
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
     public function getPassword(): string
     {
         return $this->password;
@@ -195,22 +175,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): static
     {
         $this->password = $password;
-
         return $this;
     }
 
-    /**
-     * @see UserInterface
-     */
     public function eraseCredentials(): void
     {
-        // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
     }
 
-    /**
-     * @return Collection<int, JobOffer>
-     */
     public function getJobOffers(): Collection
     {
         return $this->jobOffers;
@@ -222,19 +193,86 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $this->jobOffers->add($jobOffer);
             $jobOffer->setAppUser($this);
         }
-
         return $this;
     }
 
     public function removeJobOffer(JobOffer $jobOffer): static
     {
         if ($this->jobOffers->removeElement($jobOffer)) {
-            // set the owning side to null (unless already changed)
             if ($jobOffer->getAppUser() === $this) {
                 $jobOffer->setAppUser(null);
             }
         }
+        return $this;
+    }
 
+    public function getCategory(): ?string
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?string $category): self
+    {
+        $this->category = $category;
+        return $this;
+    }
+
+    public function setCvFile(?File $cvFile = null): void
+    {
+        $this->cvFile = $cvFile;
+
+        if (null !== $cvFile) {
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+    }
+
+    public function getCvFile(): ?File
+    {
+        return $this->cvFile;
+    }
+
+    public function setCvFilename(?string $cvFilename): void
+    {
+        $this->cvFilename = $cvFilename;
+    }
+
+    public function getCvFilename(): ?string
+    {
+        return $this->cvFilename;
+    }
+
+    public function setProfilePictureFile(?File $profilePictureFile = null): void
+    {
+        $this->profilePictureFile = $profilePictureFile;
+
+        if (null !== $profilePictureFile) {
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+    }
+
+    public function getProfilePictureFile(): ?File
+    {
+        return $this->profilePictureFile;
+    }
+
+    public function setProfilePicture(?string $profilePicture): void
+    {
+        $this->profilePicture = $profilePicture;
+    }
+
+    public function getProfilePicture(): ?string
+    {
+        return $this->profilePicture;
+    }
+
+    public function getPhoneNumber(): ?string
+    {
+        return $this->phoneNumber;
+    }
+
+    public function setPhoneNumber(?string $phoneNumber): self
+    {
+        $this->phoneNumber = $phoneNumber;
         return $this;
     }
 }
