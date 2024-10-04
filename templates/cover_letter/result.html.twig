@@ -1,0 +1,10 @@
+{# templates/cover_letter/result.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Lettre de Motivation Générée{% endblock %}
+
+{% block body %}
+<h1>Votre Lettre de Motivation</h1>
+<p>{{ letterContent|raw }}</p>
+{% endblock %}

@@ -1,0 +1,24 @@
+{# templates/cover_letter/generate.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Générateur de Lettre de Motivation{% endblock %}
+
+{% block body %}
+<h1>Générateur de Lettre de Motivation</h1>
+<form method="post" action="{{ path('generate_letter') }}">
+    <div class="mb-3">
+        <label for="recipient_name" class="form-label">Nom du destinataire</label>
+        <input type="text" id="recipient_name" name="recipient_name" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="job_position" class="form-label">Poste</label>
+        <input type="text" id="job_position" name="job_position" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="motivations" class="form-label">Motivations</label>
+        <textarea id="motivations" name="motivations" class="form-control" rows="5" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Générer</button>
+</form>
+{% endblock %}
