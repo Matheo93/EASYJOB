@@ -20,42 +20,36 @@ use Vich\UploaderBundle\Form\Type\VichFileType;
 class RegistrationFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
-    {
-        $builder
-            ->add('email', EmailType::class)
-            ->add('firstName', TextType::class)
-            ->add('lastName', TextType::class)
-            ->add('cvFile', VichFileType::class, [
-                'required' => false,
-                'allow_delete' => true,
-                'delete_label' => 'Supprimer le CV',
-                'download_uri' => true,
-                'label' => 'CV (PDF file)',
-            ])
-            ->add('plainPassword', PasswordType::class, [
-                'mapped' => false,
-                'attr' => ['autocomplete' => 'new-password'],
-                'constraints' => [
-                    new NotBlank([
-                        'message' => 'Veuillez entrer un mot de passe',
-                    ]),
-                    new Length([
-                        'min' => 6,
-                        'minMessage' => 'Votre mot de passe doit comporter au moins {{ limit }} caractères',
-                        'max' => 4096,
-                    ]),
-                ],
-            ])
-            ->add('agreeTerms', CheckboxType::class, [
-                'mapped' => false,
-                'constraints' => [
-                    new IsTrue([
-                        'message' => 'Vous devez accepter nos conditions.',
-                    ]),
-                ],
-            ])
-        ;
+{
+    $builder
+        ->add('email', EmailType::class)
+        ->add('firstName', TextType::class)
+        ->add('lastName', TextType::class)
+        ->add('plainPassword', PasswordType::class, [
+            'mapped' => false,
+            'attr' => ['autocomplete' => 'new-password'],
+            'constraints' => [
+                new NotBlank([
+                    'message' => 'Veuillez entrer un mot de passe',
+                ]),
+                new Length([
+                    'min' => 6,
+                    'minMessage' => 'Votre mot de passe doit comporter au moins {{ limit }} caractères',
+                    'max' => 4096,
+                ]),
+            ],
+        ])
+        ->add('agreeTerms', CheckboxType::class, [
+            'mapped' => false,
+            'constraints' => [
+                new IsTrue([
+                    'message' => 'Vous devez accepter nos conditions.',
+                ]),
+            ],
+        ]);
+
     }
+
 
     public function configureOptions(OptionsResolver $resolver): void
     {

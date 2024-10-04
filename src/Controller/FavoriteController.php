@@ -1,47 +1,52 @@
 <?php
-// src/Controller/FavoriteController.php
+
 namespace App\Controller;
 
-use App\Entity\Favorite;
 use App\Entity\JobOffer;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class FavoriteController extends AbstractController
 {
-    #[Route('/favorite/toggle/{id}', name: 'app_favorite_toggle', methods: ['POST'])]
-    public function toggle(int $id, EntityManagerInterface $entityManager): JsonResponse
+    #[Route('/favorites', name: 'app_favorites')]
+    public function index(): Response
     {
+        /** @var User $user */
         $user = $this->getUser();
         if (!$user) {
-            return new JsonResponse(['error' => 'User not authenticated'], 401);
+            return $this->redirectToRoute('app_login');
         }
-
-        $jobOffer = $entityManager->getRepository(JobOffer::class)->find($id);
-        if (!$jobOffer) {
-            return new JsonResponse(['error' => 'Job offer not found'], 404);
-        }
-
-        $favorite = $entityManager->getRepository(Favorite::class)->findOneBy([
-            'user' => $user,
-            'jobOffer' => $jobOffer,
+        return $this->render('favorite/index.html.twig', [
+            'favorites' => $user->getFavorites(),
         ]);
+    }
 
-        if ($favorite) {
-            $entityManager->remove($favorite);
-            $isFavorite = false;
+    #[Route('/favorite/toggle/{id}', name: 'app_favorite_toggle', methods: ['POST'])]
+    public function toggle(JobOffer $jobOffer, EntityManagerInterface $entityManager): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->json(['success' => false, 'message' => 'User not authenticated'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $isFavorite = $user->getFavorites()->contains($jobOffer);
+
+        if ($isFavorite) {
+            $user->removeFavorite($jobOffer);
         } else {
-            $favorite = new Favorite();
-            $favorite->setUser($user);
-            $favorite->setJobOffer($jobOffer);
-            $entityManager->persist($favorite);
-            $isFavorite = true;
+            $user->addFavorite($jobOffer);
         }
 
         $entityManager->flush();
 
-        return new JsonResponse(['isFavorite' => $isFavorite]);
+        return $this->json([
+            'success' => true,
+            'isFavorite' => !$isFavorite
+        ]);
     }
 }

@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Favoris{% endblock %}
+
+{% block body %}
+    <h1>Mes Favoris</h1>
+    {% if favorites is empty %}
+        <p>Vous n'avez pas encore de favoris.</p>
+    {% else %}
+        <ul>
+            {% for favorite in favorites %}
+                <li>
+                    {{ favorite.title }} - {{ favorite.company }}
+                    <button class="favorite-btn" data-id="{{ favorite.id }}">Retirer des favoris</button>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.querySelectorAll('.favorite-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const jobId = this.getAttribute('data-id');
+                fetch(`/favorite/toggle/${jobId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Si le retrait des favoris a réussi, on supprime l'élément de la liste
+                        this.closest('li').remove();
+                        
+                        // Si c'était le dernier favori, on affiche le message "Vous n'avez pas encore de favoris"
+                        if (document.querySelectorAll('.favorite-btn').length === 0) {
+                            const noFavoritesMessage = document.createElement('p');
+                            noFavoritesMessage.textContent = "Vous n'avez pas encore de favoris.";
+                            document.querySelector('ul').replaceWith(noFavoritesMessage);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

@@ -10,10 +10,11 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[Vich\Uploadable]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface, \Serializable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -42,34 +43,38 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $image = null;
-
-    #[ORM\OneToMany(targetEntity: JobOffer::class, mappedBy: 'app_user')]
-    private Collection $jobOffers;
-
-    #[ORM\Column(length: 20, nullable: true)]
-    private ?string $phoneNumber = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
     private ?string $profilePicture = null;
 
+    #[Ignore]
     #[Vich\UploadableField(mapping: 'profile_pictures', fileNameProperty: 'profilePicture')]
     private ?File $profilePictureFile = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $cvFilename = null;
 
+    #[Ignore]
     #[Vich\UploadableField(mapping: 'cv_files', fileNameProperty: 'cvFilename')]
     private ?File $cvFile = null;
 
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $phoneNumber = null;
+
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $category = null;
+
+    #[ORM\OneToMany(targetEntity: JobOffer::class, mappedBy: 'app_user')]
+    private Collection $jobOffers;
+
+    #[ORM\ManyToMany(targetEntity: JobOffer::class)]
+    #[ORM\JoinTable(name: 'user_favorites')]
+    private Collection $favorites;
 
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
         $this->jobOffers = new ArrayCollection();
+        $this->favorites = new ArrayCollection();
     }
 
     #[ORM\PreUpdate]
@@ -121,37 +126,79 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-        return $this;
-    }
-
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
+    public function getProfilePicture(): ?string
     {
-        $this->updatedAt = $updatedAt;
+        return $this->profilePicture;
+    }
+
+    public function setProfilePicture(?string $profilePicture): void
+    {
+        $this->profilePicture = $profilePicture;
+    }
+
+    public function getProfilePictureFile(): ?File
+    {
+        return $this->profilePictureFile;
+    }
+
+    public function setProfilePictureFile(?File $profilePictureFile = null): void
+    {
+        $this->profilePictureFile = $profilePictureFile;
+
+        if ($profilePictureFile) {
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+    }
+
+    public function getCvFilename(): ?string
+    {
+        return $this->cvFilename;
+    }
+
+    public function setCvFilename(?string $cvFilename): void
+    {
+        $this->cvFilename = $cvFilename;
+    }
+
+    public function getCvFile(): ?File
+    {
+        return $this->cvFile;
+    }
+
+    public function setCvFile(?File $cvFile = null): void
+    {
+        $this->cvFile = $cvFile;
+
+        if ($cvFile) {
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+    }
+
+    public function getPhoneNumber(): ?string
+    {
+        return $this->phoneNumber;
+    }
+
+    public function setPhoneNumber(?string $phoneNumber): self
+    {
+        $this->phoneNumber = $phoneNumber;
         return $this;
     }
 
-    public function getImage(): ?string
+    public function getCategory(): ?string
     {
-        return $this->image;
+        return $this->category;
     }
 
-    public function setImage(?string $image): static
+    public function setCategory(?string $category): self
     {
-        $this->image = $image;
+        $this->category = $category;
         return $this;
-    }
-
-    public function getUserIdentifier(): string
-    {
-        return (string) $this->email;
     }
 
     public function getRoles(): array
@@ -206,73 +253,56 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getCategory(): ?string
+    public function getUserIdentifier(): string
     {
-        return $this->category;
+        return (string) $this->email;
     }
 
-    public function setCategory(?string $category): self
+    /**
+     * @return Collection<int, JobOffer>
+     */
+    public function getFavorites(): Collection
     {
-        $this->category = $category;
+        return $this->favorites;
+    }
+
+    public function addFavorite(JobOffer $jobOffer): self
+    {
+        if (!$this->favorites->contains($jobOffer)) {
+            $this->favorites->add($jobOffer);
+        }
         return $this;
     }
 
-    public function setCvFile(?File $cvFile = null): void
+    public function removeFavorite(JobOffer $jobOffer): self
     {
-        $this->cvFile = $cvFile;
-
-        if (null !== $cvFile) {
-            $this->updatedAt = new \DateTimeImmutable();
-        }
-    }
-
-    public function getCvFile(): ?File
-    {
-        return $this->cvFile;
-    }
-
-    public function setCvFilename(?string $cvFilename): void
-    {
-        $this->cvFilename = $cvFilename;
-    }
-
-    public function getCvFilename(): ?string
-    {
-        return $this->cvFilename;
-    }
-
-    public function setProfilePictureFile(?File $profilePictureFile = null): void
-    {
-        $this->profilePictureFile = $profilePictureFile;
-
-        if (null !== $profilePictureFile) {
-            $this->updatedAt = new \DateTimeImmutable();
-        }
-    }
-
-    public function getProfilePictureFile(): ?File
-    {
-        return $this->profilePictureFile;
-    }
-
-    public function setProfilePicture(?string $profilePicture): void
-    {
-        $this->profilePicture = $profilePicture;
-    }
-
-    public function getProfilePicture(): ?string
-    {
-        return $this->profilePicture;
-    }
-
-    public function getPhoneNumber(): ?string
-    {
-        return $this->phoneNumber;
-    }
-
-    public function setPhoneNumber(?string $phoneNumber): self
-    {
-        $this->phoneNumber = $phoneNumber;
+        $this->favorites->removeElement($jobOffer);
         return $this;
+    }
+
+    public function serialize()
+    {
+        return serialize([
+            $this->id,
+            $this->email,
+            $this->password,
+            $this->firstName,
+            $this->lastName,
+            $this->phoneNumber,
+            $this->category,
+        ]);
+    }
+
+    public function unserialize($serialized)
+    {
+        list (
+            $this->id,
+            $this->email,
+            $this->password,
+            $this->firstName,
+            $this->lastName,
+            $this->phoneNumber,
+            $this->category
+        ) = unserialize($serialized);
     }
 }
